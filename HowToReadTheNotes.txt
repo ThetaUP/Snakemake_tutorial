@@ -1,0 +1,16 @@
+links:
+
+	https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#requirements
+	https://snakemake.readthedocs.io/en/stable/tutorial/basics.html
+	https://snakemake.readthedocs.io/en/stable/tutorial/advanced.html#tutorial-advanced
+	https://snakemake.readthedocs.io/en/stable/tutorial/additional_features.html#tutorial-additional-features
+	https://slides.com/johanneskoester/snakemake-tutorial
+
+
+
+1.) make the env: 
+		https://snakemake.readthedocs.io/en/stable/tutorial/setup.html#requirements
+
+2.) make subdirs for the basic, advanced and additional tutorials (make symlinks to the data/ dir)
+
+3.) go from top to bottom on the tutorials (from the links) and look at the snakefiles

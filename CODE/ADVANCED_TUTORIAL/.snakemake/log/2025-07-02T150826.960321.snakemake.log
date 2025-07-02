@@ -1,0 +1,58 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Noovera
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job stats:
+job               count
+--------------  -------
+all                   1
+bcftools_call         1
+bwa_map               3
+plot_quals            1
+samtools_index        3
+samtools_sort         3
+total                12
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Jul  2 15:08:28 2025]
+localrule bwa_map:
+    input: data/genome.fa, data/samples/B.fastq
+    output: mapped_reads/B.bam
+    log: logs/bwa_mem/B.log
+    jobid: 6
+    reason: Missing output files: mapped_reads/B.bam; Code has changed since last execution
+    wildcards: sample=B
+    threads: 8
+    resources: tmpdir=/tmp
+RuleException:
+CalledProcessError in file "/mnt/c/Users/Qba Liu/Documents/STUDIA/PhD/CompCancer/snakemake-tutorial/ADVANCED_TUTORIAL/Snakefile_2.smk", line 31:
+Command 'set -euo pipefail;  (bwa mem -R '@RG\tID:B\tSM:B' -t 8 data/genome.fa data/samples/B.fastq | samtools view -Sb - > mapped_reads/B.bam) 2 > logs/bwa_mem/B.log' returned non-zero exit status 2.
+[Wed Jul  2 15:08:28 2025]
+Error in rule bwa_map:
+    message: None
+    jobid: 6
+    input: data/genome.fa, data/samples/B.fastq
+    output: mapped_reads/B.bam
+    log: logs/bwa_mem/B.log (check log file(s) for error details)
+    shell:
+        (bwa mem -R '@RG\tID:B\tSM:B' -t 8 data/genome.fa data/samples/B.fastq | samtools view -Sb - > mapped_reads/B.bam) 2 > logs/bwa_mem/B.log
+        (command exited with non-zero exit code)
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look below for error messages
+[Wed Jul  2 15:08:28 2025]
+Error in rule bwa_map:
+    message: None
+    jobid: 6
+    input: data/genome.fa, data/samples/B.fastq
+    output: mapped_reads/B.bam
+    log: logs/bwa_mem/B.log (check log file(s) for error details)
+    shell:
+        (bwa mem -R '@RG\tID:B\tSM:B' -t 8 data/genome.fa data/samples/B.fastq | samtools view -Sb - > mapped_reads/B.bam) 2 > logs/bwa_mem/B.log
+        (command exited with non-zero exit code)
+Complete log(s): /mnt/c/Users/Qba Liu/Documents/STUDIA/PhD/CompCancer/snakemake-tutorial/ADVANCED_TUTORIAL/.snakemake/log/2025-07-02T150826.960321.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

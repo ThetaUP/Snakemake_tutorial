@@ -1,0 +1,39 @@
+Assuming unrestricted shared filesystem usage.
+None
+host: Noovera
+Building DAG of jobs...
+Your conda installation is not configured to use strict channel priorities. This is however important for having robust and correct environments (for details, see https://conda-forge.org/docs/user/tipsandtricks.html). Please consider to configure strict priorities by executing 'conda config --set channel_priority strict'.
+Using shell: /usr/bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job stats:
+job           count
+----------  -------
+all               1
+plot_quals        1
+total             2
+
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Jul  2 16:48:03 2025]
+localrule plot_quals:
+    input: calls_conda/all.vcf
+    output: plots_conda/quals.svg
+    jobid: 1
+    reason: Missing output files: plots_conda/quals.svg
+    resources: tmpdir=/tmp
+[Wed Jul  2 16:48:04 2025]
+Finished jobid: 1 (Rule: plot_quals)
+1 of 2 steps (50%) done
+Select jobs to execute...
+Execute 1 jobs...
+[Wed Jul  2 16:48:04 2025]
+localrule all:
+    input: plots_conda/quals.svg
+    jobid: 0
+    reason: Input files updated by another job: plots_conda/quals.svg
+    resources: tmpdir=/tmp
+[Wed Jul  2 16:48:04 2025]
+Finished jobid: 0 (Rule: all)
+2 of 2 steps (100%) done
+Complete log(s): /mnt/c/Users/Qba Liu/Documents/STUDIA/PhD/CompCancer/snakemake-tutorial/ADDITIONAL_ASPECTS/.snakemake/log/2025-07-02T164802.041908.snakemake.log

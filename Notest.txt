@@ -1,0 +1,268 @@
+basic session________________________________________________________________________________________________________________________
+
+    - the goal of snakemake is not only to get the job done computationally, but
+      also to create a script that is readable for other prople, so that they understand the analysis steps
+
+    - it is an extension of python
+
+    rule mytask:                  # each rule is a task (like mapping)
+    input:
+        "path/to/{dataset}.txt"   # {} wildcards
+    output:
+        "result/{dataset}.txt"
+    script:
+        "scripts/myscript.R"   # you can do shell commands, but also python commands here
+
+
+    rule myfiltration:
+        input:
+            "result/{dataset}.txt"
+        output:
+            "result/{dataset}.filtered.txt"
+        shell:
+            "mycommand {input} > {output}"
+
+
+    rule aggregate:
+        input:                                 # there can be multiple inputs/outputs (you can reffer to them an input[0], input[1] ...)
+            "results/dataset1.filtered.txt",
+            "results/dataset2.filtered.txt"
+        output:
+            "plots/myplot.pdf"
+        script:
+            "scripts/myplot.R"
+
+
+
+    
+    rule sort_and_annotate:
+    input:                             # inputs can also be named
+        a="path/to/{dataset}.txt",
+        b="path/to/annotation.txt"
+    output:
+        "{dataset}.sorted.txt"
+    shell:
+        "paste <(sort {input.a}) {input.b} > {output}"  # reffer to the named inputs
+
+
+
+
+    # a Python rule
+    rule sort:
+    input:
+        "path/to/{dataset}.txt"
+    output:
+        "{dataset}.sorted.txt"
+    run:
+        with open(output[0], "w") as out:
+            for l in sorted(open(input[0])):
+                print(l, file=out)
+
+
+    
+    # you can also reffer to scripts written in various languages
+    rule sort:
+    input:
+        "path/to/{dataset}.txt"
+    output:
+        "{dataset}.sorted.txt"
+    script:
+        "scripts/myscript.py"
+
+
+
+    # this is how these scripts could look like
+
+    # Python
+    import pandas as pd
+    data = pd.read_table(snakemake.input[0])
+    data = data.sort_values("id")
+    data.to_csv(snakemake.output[0], sep="\t")
+
+    # R
+    data <- read.table(snakemake@input[[1]])
+    data <- data[order(data$id),]
+    write.table(data, file = snakemake@output[[1]])
+
+
+    # you can also use jupyter notebooks
+    # even you can specify a non-existing notebook
+    # when snakemake gets to this part of the script, it launches jupyter and lets you edit this notebook
+    # then when you save and close the notebook and the snakemake script will continue
+    rule plot_histogram:
+    input:
+        "path/to/{dataset}.txt"
+    output:
+        "plots/{dataset}.hist.pdf"
+    notebook:
+        "notebooks/plot-histogram.py.ipynb"
+
+
+
+
+    # When you would launch this script, then (based on the rule all), snakemake would look for the
+    # rule that can create these datasets (D1.sorted.txt, ..., D3.sorted.txt). In this case is the rule sort.
+    DATASETS = ["D1", "D2", "D3"]
+
+
+    rule all:
+        input:
+            [f"{dataset}.sorted.txt" for dataset in DATASETS]  # in snakemake you can make full use of python syntaxs
+
+
+    rule sort:
+        input:
+            "path/to/{dataset}.txt"
+        output:
+            "{dataset}.sorted.txt"
+        shell:
+            "sort {input} > {output}"
+
+
+    
+    - snakemake is lazy, so a rule will only get excuted, when it is absolutely necessary
+
+
+    # This is how to launch snakemake
+
+    # execute the workflow with target D1.sorted.txt
+    snakemake D1.sorted.txt --cores 1
+
+    # execute the workflow without target: first rule defines target
+    snakemake --cores 2
+
+    # dry-run
+    snakemake -n
+
+    # visualize the DAG of jobs using the Graphviz dot command
+    snakemake --dag | dot -Tsvg > dag.svg
+
+
+    # there should be one snakefile in the work dir
+    # but you can also exactly specfiy the snakefile with the -s flag (snakemake -s Snakefile1.smk --cores 1)
+
+
+
+
+
+
+advanced session________________________________________________________________________________________________________________________
+
+    rule sort:
+        input:
+            "path/to/{dataset}.txt"
+        output:
+            "{dataset}.sorted.txt"
+        threads: 4
+        resources: mem_mb=100   # here you can also specify the memory size
+        shell:
+            "sort --parallel {threads} {input} > {output}"
+
+
+    Offcourse the resource allocation only works if you don't work with slurm.
+
+
+
+    Workflows are executed in three phases
+
+    initialization phase (parsing)
+        - the code is just "compiled" into python code
+    DAG phase (DAG is built)
+        - at this phase snakemake finds out which rule depends on which other rule
+    scheduling phase (execution of DAG)
+        - just the execution
+
+    Input functions defer determination of input files to the DAG phase
+    (when wildcard values are known).
+
+    Normally the inputs for rules are defined in the initialization phase, but sometimes at this phase we do not
+    know about the input to a given rule. For example we might have two different analysis paths based on the output
+    of a rule (we woudl then use an input fucntion).
+
+    configfile: "config.yaml"
+
+
+    rule all:
+        input:
+            expand("{dataset}.sorted.txt", dataset=config["datasets"])
+
+
+    def get_sort_input(wildcards):
+        return config["datasets"][wildcards.dataset]
+
+
+    rule sort:
+        input:
+            get_sort_input
+        output:
+            "{dataset}.sorted.txt"
+        threads: 4
+        resources: mem_mb=100
+        shell:
+            "sort --parallel {threads} {input} > {output}"
+
+
+
+    This is how to use logfiles in snakemake:
+
+    configfile: "config.yaml"
+
+
+rule all:
+    input:
+        expand("{dataset}.sorted.txt", dataset=config["datasets"])
+
+
+def get_sort_input(wildcards):
+    return config["datasets"][wildcards.dataset]
+
+
+rule sort:
+    input:
+        get_sort_input
+    output:
+        "{dataset}.sorted.txt"
+    log:
+        "logs/sort/{dataset}.log"   # here we specify the log fikle
+    threads: 4
+    resources: mem_mb=100
+    shell:
+        "sort --parallel {threads} {input} > {output} 2> {log}"  # here we write to the log file
+
+
+
+
+    - this is how you can use (create) conda environments for a given rule
+
+    rule mytask:
+        input:
+            "path/to/{dataset}.txt"
+        output:
+            "result/{dataset}.txt"
+        conda:
+            "envs/mycommand.yaml"       # here you reffer to the .yaml file (note the 'conda') statement
+        shell:
+            "mycommand {input} > {output}"
+
+
+
+    - this is how you can 'import other snakemake script and use them in your Snakefile'
+
+    configfile: "config/config.yaml"
+
+    module dna_seq:
+        snakefile:
+            "https://github.com/snakemake-workflows/dna-seq-gatk-variant-calling/raw/v2.0.1/Snakefile"
+        config:
+            config
+
+    use rule * from dna_seq     # use all of the rules from the importet snakemake script
+
+    # easily extend the workflow
+    rule plot_vafs:
+        input:
+            "filtered/all.vcf.gz"
+        output:
+            "results/plots/vafs.svg"
+        notebook:
+            "notebooks/plot-vafs.py.ipynb"
